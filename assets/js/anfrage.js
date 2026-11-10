@@ -285,6 +285,44 @@
     return '<label class="checkbox"><input type="checkbox" name="datenschutz" value="ja" required> <span>Ich bin einverstanden, dass KLINGLER meine Angaben zur Bearbeitung meiner Anfrage verwendet. Mehr dazu in der <a href="../datenschutz/index.html" target="_blank">Datenschutzerklärung</a>.</span></label>';
   }
 
+  // ---------- Mail ans Büro: Klartext statt technischer Feldnamen und Kürzel ----------
+  var FELDNAMEN = {
+    vorhaben: "Vorhaben", anliegen: "Anliegen", plz: "PLZ", ort: "Ort", zeitrahmen: "Zeitrahmen", budget: "Budget",
+    flaeche: "Badgröße (m²)", gebaeude: "Gebäude", baujahr: "Baujahr", wohnflaeche: "Beheizte Fläche",
+    heizung_aktuell: "Heizung aktuell", wunsch: "Gewünschtes System", projektart: "Projektart", rolle: "Rolle",
+    groesse: "Größe", leistungen: "Leistungen", planungsstand: "Planungsstand", zeitraum: "Ausführungszeitraum",
+    problem: "Problem", geraet: "Gerät / Marke", bestandskunde: "Bereits Kunde",
+    vorname: "Vorname", nachname: "Nachname", name: "Name", firma: "Firma", funktion: "Funktion",
+    telefon: "Telefon", email: "E-Mail", rueckruf: "Rückruf am besten", nachricht: "Nachricht",
+    datenschutz: "Datenschutz-Einwilligung", fotos: "Fotos", plaene: "Pläne"
+  };
+  // Beschriftung der gewählten Antwort statt des internen Werts (z. B. „über € 40.000“ statt „4“)
+  function anzeigeWert(form, name, wert) {
+    var el = Array.prototype.filter.call(form.querySelectorAll('input[name="' + name + '"]'), function (i) { return i.value === wert; })[0];
+    if (el && (el.type === "radio" || el.type === "checkbox")) {
+      var lab = form.querySelector('label[for="' + el.id + '"]');
+      var txt = lab && (lab.querySelector("strong") || lab).textContent.trim();
+      if (txt) return txt;
+    }
+    return wert;
+  }
+  // Formulardaten in Klartext, leere Felder und der Spamschutz bleiben draußen; Mehrfachauswahl mit Komma
+  function mailDaten(form) {
+    var reihenfolge = [], werte = {}, dateien = [];
+    new FormData(form).forEach(function (v, k) {
+      if (k === "website") return;
+      if (typeof v !== "string") { if (v.name) dateien.push([FELDNAMEN[k] || k, v]); return; }
+      if (!v.trim()) return;
+      var titel = FELDNAMEN[k] || k;
+      if (!werte[titel]) { werte[titel] = []; reihenfolge.push(titel); }
+      werte[titel].push(anzeigeWert(form, k, v.trim()));
+    });
+    var fd = new FormData();
+    reihenfolge.forEach(function (t) { fd.append(t, werte[t].join(", ")); });
+    dateien.forEach(function (d) { fd.append(d[0], d[1]); });
+    return fd;
+  }
+
   // Ersatz für ein Upload-Feld: Unterlagen nach der Anfrage per E-Mail schicken
   function mailHinweis(was, thema) {
     var mail = (cfg.email || {})[thema];
@@ -567,23 +605,22 @@
     var teile = ["[" + b.klasse + "] " + flow.themaKurz, daten.ort || daten.plz || "?"].concat(flow.betreffDetail ? flow.betreffDetail(daten) : []);
     var betreff = teile.join(" · ") + (b.imGebiet ? "" : " · AUSSERHALB");
 
-    var fd = new FormData(form);
-    fd.delete("website");
-    form.querySelectorAll('input[type="file"]').forEach(function (f) { if (!f.files.length) fd.delete(f.name); });
-    fd.append("thema", thema);
-    if (!flow.ohneGebiet) fd.append("im_einzugsgebiet", b.imGebiet ? "ja" : "nein");
-    if (!flow.klasse) fd.append("score", String(b.punkte));
-    fd.append("klasse", b.klasse);
-    fd.append("quelle_seite", eingebettet ? location.pathname : (document.referrer || "direkt"));
-    ["utm_source", "utm_medium", "utm_campaign"].forEach(function (u) { if (params.get(u)) fd.append(u, params.get(u)); });
-    if (daten.wunsch === "showroom") fd.append("termin_wunsch", "showroom");
-    fd.append("_subject", betreff);
-    var ziel = (cfg.email || {})[thema];
-    if (ziel && !istPlatzhalter(ziel)) fd.append("_empfaenger", ziel);
-    if (daten.email) fd.append("_replyto", daten.email); // „Antworten“ im Mailprogramm geht direkt an den Kunden
-
     // Endpoint: eine Adresse für alles oder je Thema eine eigene (config.js)
     var endpoint = cfg.formularEndpoint && typeof cfg.formularEndpoint === "object" ? cfg.formularEndpoint[thema] : cfg.formularEndpoint;
+
+    var fd = mailDaten(form);
+    fd.append("Thema", flow.themaKurz);
+    if (!flow.ohneGebiet) fd.append("Im Einzugsgebiet", b.imGebiet ? "ja" : "nein");
+    if (!flow.klasse) fd.append("Punkte", String(b.punkte));
+    fd.append("Klasse", b.klasse);
+    fd.append("Gekommen über", eingebettet ? location.pathname : (document.referrer || "direkt"));
+    ["utm_source", "utm_medium", "utm_campaign"].forEach(function (u) { if (params.get(u)) fd.append(u, params.get(u)); });
+    if (daten.wunsch === "showroom") fd.append("Terminwunsch", "Showroom");
+    fd.append("_subject", betreff);
+    var ziel = (cfg.email || {})[thema];
+    // Empfänger nur für ein eigenes Skript (README, Variante B) – Formspree stellt selbst zu
+    if (ziel && !istPlatzhalter(ziel) && !/formspree\.io/.test(endpoint || "")) fd.append("_empfaenger", ziel);
+    if (daten.email) fd.append("_replyto", daten.email); // „Antworten“ im Mailprogramm geht direkt an den Kunden
 
     var btn = root.querySelector("[data-senden]");
     btn.disabled = true; btn.textContent = "Wird gesendet …";
