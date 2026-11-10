@@ -1,0 +1,9 @@
+# KLINGLER – Hinweise für Suchmaschinen
+#
+# Anfrage- und Danke-Seiten sind bewusst NICHT gesperrt: Sie tragen selbst ein
+# „noindex“. Wäre die Seite hier gesperrt, könnte Google dieses noindex nicht lesen.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.klingler-installationen.at/sitemap.xml

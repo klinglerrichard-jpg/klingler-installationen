@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de-AT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Danke für Ihre Anfrage | KLINGLER</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1f4e8c">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <script src="../../config.js" defer></script>
+  <script src="../../assets/js/main.js" defer></script>
+</head>
+<body class="ohne-cta-leiste">
+
+<header class="header">
+  <div class="container header__inner">
+    <a class="header__logo" href="../../index.html" aria-label="KLINGLER Startseite">
+      <img src="../../assets/img/logo.svg" alt="KLINGLER – das Bad, die Heizung" width="174" height="50">
+    </a>
+  </div>
+</header>
+
+<main class="assistent-seite">
+  <div class="container">
+    <div class="danke">
+      <div class="danke__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1 id="danke-titel">Danke! Ihre Anfrage ist bei uns angekommen.</h1>
+      <p class="lead" id="danke-text">Ihr Berater meldet sich innerhalb von <span data-frist>einem Werktag</span> persönlich bei Ihnen.</p>
+
+      <ol class="ablauf danke__schritte">
+        <li><h3>Wir sichten</h3><p>Ihre Angaben und Fotos – damit wir vorbereitet sind.</p></li>
+        <li><h3>Wir rufen an</h3><p>Zur gewünschten Zeit, um Ihr Vorhaben kurz zu besprechen.</p></li>
+        <li><h3>Wir beraten</h3><p>Vor Ort oder im Showroom – ganz wie es Ihnen passt.</p></li>
+      </ol>
+
+      <p>Dringend? Rufen Sie uns an: <a href="tel:+4353398156" data-tel="buero"><span data-tel-text>+43 5339 8156</span></a></p>
+      <p style="margin-top:2rem"><a class="btn btn--outline" id="danke-weiter" href="../../referenzen/index.html">Referenzen ansehen</a></p>
+
+      <div id="testmodus" class="hinweis hinweis--info" style="text-align:left;margin-top:2.5rem" hidden></div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer" style="padding:1.5rem 0">
+  <div class="container footer__unten" style="margin:0;padding:0;border:0">
+    <span>KLINGLER · Dorf Oberau 213 · 6311 Wildschönau</span>
+    <span><a href="../../impressum/index.html">Impressum</a> · <a href="../../datenschutz/index.html">Datenschutz</a></span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var p = new URLSearchParams(location.search);
+    var vorname = (p.get("vorname") || "").trim().slice(0, 40);
+    if (vorname) document.getElementById("danke-titel").textContent = "Danke, " + vorname + "! Ihre Anfrage ist bei uns angekommen.";
+    var w = document.getElementById("danke-weiter");
+    var istKD = p.get("thema") === "kundendienst";
+    if (p.get("thema") === "bad") {
+      w.textContent = "Bad-Inspiration ansehen";
+      w.setAttribute("href", "../../bad/index.html#inspiration-titel");
+    }
+    if (p.get("thema") === "heizung") {
+      w.textContent = "Mehr zu Wärmepumpe & Förderung";
+      w.setAttribute("href", "../../heizung/index.html#foerderung-titel");
+    }
+    if (p.get("thema") === "projekt") {
+      document.getElementById("danke-text").innerHTML = 'Ihre Projektleitung meldet sich persönlich bei Ihnen – in der Regel innerhalb von <span data-frist>einem Werktag</span>.';
+      var schritte = document.querySelectorAll(".danke__schritte li");
+      schritte[0].innerHTML = "<h3>Wir sichten</h3><p>Ihre Eckdaten und Unterlagen.</p>";
+      schritte[1].innerHTML = "<h3>Wir melden uns</h3><p>Für ein erstes Gespräch zu Umfang und Zeitfenster.</p>";
+      schritte[2].innerHTML = "<h3>Wir treffen uns</h3><p>Vor Ort am Projekt oder bei uns in Oberau.</p>";
+      w.textContent = "Projekt-Referenzen ansehen";
+      w.setAttribute("href", "../../projektbau/index.html#referenzen-titel");
+    }
+    if (istKD) {
+      document.getElementById("danke-text").textContent = "Wir melden uns so rasch wie möglich. Bei einem Ausfall rufen Sie bitte zusätzlich direkt an – das geht am schnellsten.";
+      document.querySelector(".danke__schritte").hidden = true;
+      var tel = document.querySelector("main [data-tel]");
+      tel.setAttribute("data-tel", "kundendienst");
+      tel.querySelector("[data-tel-text]").textContent = "+43 5339 8156";
+      w.textContent = "Zur Startseite";
+      w.setAttribute("href", "../../index.html");
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+      var cfg = window.KLINGLER_CONFIG || {};
+      // Rückruf-Frist aus config.js („1“ → „einem Werktag“, sonst „N Werktagen“)
+      var n = String(cfg.rueckrufWerktage || "");
+      if (/^\d+$/.test(n)) {
+        var frist = n === "1" ? "einem Werktag" : n + " Werktagen";
+        document.querySelectorAll("[data-frist]").forEach(function (el) { el.textContent = frist; });
+      }
+      if (p.get("test") !== "1") return;
+      var daten = null;
+      try { daten = JSON.parse(sessionStorage.getItem("klingler-testmodus") || "null"); } catch (e) {}
+      if (!daten) return;
+      var box = document.getElementById("testmodus");
+      var zeilen = Object.keys(daten.felder).map(function (k) {
+        return "<tr><td style='padding:.15rem 1rem .15rem 0;font-weight:600'>" + k + "</td><td>" + String(daten.felder[k]).replace(/</g, "&lt;") + "</td></tr>";
+      }).join("");
+      box.innerHTML = "<strong>Testmodus – es wurde nichts versendet.</strong> (Kein Formular-Endpoint in config.js.) Diese Mail würde das Büro erhalten:<br><br>" +
+        "<strong>Betreff:</strong> " + daten.betreff.replace(/</g, "&lt;") + "<br><strong>Einstufung:</strong> " + (daten.punkte === null ? "" : daten.punkte + " Punkte → ") + "Klasse " + daten.klasse +
+        "<table style='margin-top:.75rem;font-size:.9rem'>" + zeilen + "</table>";
+      box.hidden = false;
+    });
+  })();
+</script>
+</body>
+</html>
