@@ -10,6 +10,7 @@
 (function () {
   "use strict";
   var cfg = window.KLINGLER_CONFIG || {};
+  var uploads = cfg.dateiUpload !== false; // false = keine Upload-Felder (Formular-Dienst ohne Datei-Upload)
   var root = document.getElementById("assistent");
   if (!root) return;
 
@@ -284,6 +285,14 @@
     return '<label class="checkbox"><input type="checkbox" name="datenschutz" value="ja" required> <span>Ich bin einverstanden, dass KLINGLER meine Angaben zur Bearbeitung meiner Anfrage verwendet. Mehr dazu in der <a href="../datenschutz/index.html" target="_blank">Datenschutzerklärung</a>.</span></label>';
   }
 
+  // Ersatz für ein Upload-Feld: Unterlagen nach der Anfrage per E-Mail schicken
+  function mailHinweis(was, thema) {
+    var mail = (cfg.email || {})[thema];
+    if (istPlatzhalter(mail)) return "";
+    return '<p class="feld" style="color:var(--text-leise);font-size:.92rem"><strong>' + esc(was) + '?</strong> Gern – schicken Sie sie nach dem Absenden einfach an ' +
+      '<a href="mailto:' + esc(mail) + '">' + esc(mail) + '</a>.</p>';
+  }
+
   function renderSchritt(s, i) {
     var inhalt = "";
     if (s.typ === "auswahl") inhalt = optionenHtml(s.name, s.optionen, s.raster, s.icon, s.frage);
@@ -295,8 +304,10 @@
         optionenHtml("budget", stufen, 2, "euro", s.frage) +
         '<div class="feld"><label for="f-flaeche">Ungefähre Größe des Bads <span class="optional">(optional)</span></label>' +
         '<input id="f-flaeche" type="number" name="flaeche" min="1" max="200" inputmode="decimal" placeholder="z. B. 8 m²"></div>' +
-        '<div class="feld"><label for="f-fotos">Fotos Ihres jetzigen Bads <span class="optional">(optional, max. 5 Bilder à 10 MB)</span></label>' +
-        '<div class="upload"><input id="f-fotos" type="file" name="fotos" accept="image/*" multiple><ul class="upload__liste" data-upload-liste></ul></div></div>';
+        (uploads
+          ? '<div class="feld"><label for="f-fotos">Fotos Ihres jetzigen Bads <span class="optional">(optional, max. 5 Bilder à 10 MB)</span></label>' +
+            '<div class="upload"><input id="f-fotos" type="file" name="fotos" accept="image/*" multiple><ul class="upload__liste" data-upload-liste></ul></div></div>'
+          : mailHinweis("Fotos Ihres jetzigen Bads", "bad"));
     }
     if (s.typ === "kontakt") {
       inhalt =
@@ -340,8 +351,10 @@
         '<div class="feld"><label for="f-email">E-Mail</label><input id="f-email" type="email" name="email" autocomplete="email" required></div>' +
         "</div>" +
         '<div class="feld"><label for="f-nachricht">Nachricht <span class="optional">(optional)</span></label><textarea id="f-nachricht" name="nachricht" rows="4"></textarea></div>' +
-        '<div class="feld"><label for="f-plaene">Pläne, LV oder Unterlagen <span class="optional">(optional, PDF, max. 5 Dateien à 20 MB)</span></label>' +
-        '<div class="upload"><input id="f-plaene" type="file" name="plaene" accept=".pdf,application/pdf,image/*" multiple><ul class="upload__liste" data-upload-liste></ul></div></div>' +
+        (uploads
+          ? '<div class="feld"><label for="f-plaene">Pläne, LV oder Unterlagen <span class="optional">(optional, PDF, max. 5 Dateien à 20 MB)</span></label>' +
+            '<div class="upload"><input id="f-plaene" type="file" name="plaene" accept=".pdf,application/pdf,image/*" multiple><ul class="upload__liste" data-upload-liste></ul></div></div>'
+          : mailHinweis("Pläne, LV oder Unterlagen", "projekt")) +
         datenschutzFeld();
     }
     if (s.typ === "kundendienst") {
@@ -456,8 +469,8 @@
     if (s.typ === "budget") {
       if (!gewaehlt(form, "budget")) return fehler("Bitte wählen Sie einen Rahmen – „Weiß ich noch nicht“ ist auch in Ordnung.");
       var f = form.querySelector('[name="fotos"]');
-      if (f.files.length > 5) return fehler("Bitte maximal 5 Fotos auswählen.");
-      for (var k = 0; k < f.files.length; k++) if (f.files[k].size > 10 * 1024 * 1024) return fehler("Ein Foto ist größer als 10 MB. Bitte kleiner speichern oder weglassen.");
+      if (f && f.files.length > 5) return fehler("Bitte maximal 5 Fotos auswählen.");
+      for (var k = 0; f && k < f.files.length; k++) if (f.files[k].size > 10 * 1024 * 1024) return fehler("Ein Foto ist größer als 10 MB. Bitte kleiner speichern oder weglassen.");
     }
     if (s.typ === "ort") {
       if (s.mitZeitrahmen && !gewaehlt(form, "zeitrahmen")) {

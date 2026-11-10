@@ -27,7 +27,10 @@ window.KLINGLER_CONFIG = {
   //   formularEndpoint: "https://formspree.io/f/xxxxxxx",
   // oder je Thema eine eigene (z. B. Projektanfragen direkt an die Projektleitung):
   //   formularEndpoint: { bad: "https://…", heizung: "https://…", projekt: "https://…", kundendienst: "https://…" },
-  formularEndpoint: "",
+  formularEndpoint: "https://formspree.io/f/mdegnkob",   // Formspree, Formular „Website Anfragen“ → oberau@klinglerteam.at
+  // Datei-Upload (Badfotos, Pläne) nur einschalten, wenn der Formular-Dienst Dateien annimmt
+  // (Formspree: nur in Bezahltarifen). false = Felder ausgeblendet, Hinweis „gern per E-Mail“.
+  dateiUpload: false,
   rueckrufWerktage: "1",
 
   // Einzugsgebiet Privatkunden (Vorschlag – bitte bestätigen, siehe KONZEPT.md, Frage 2)
