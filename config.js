@@ -18,6 +18,7 @@ window.KLINGLER_CONFIG = {
   email: {
     bad: "oberau@klinglerteam.at",
     heizung: "oberau@klinglerteam.at",
+    pv: "oberau@klinglerteam.at",
     projekt: "oberau@klinglerteam.at",
     kundendienst: "oberau@klinglerteam.at"
   },
@@ -44,6 +45,9 @@ window.KLINGLER_CONFIG = {
     "6230", "6233", "6240", "6250", "6252" // Brixlegg, Kramsach, Rattenberg, Kundl, Breitenbach
   ],
 
+  // Photovoltaik nur in der Wildschönau
+  pvGebietPLZ: ["6311", "6313", "6314"],
+
   // Budget-Stufen im Bad-Assistenten. Erste Grenze = Untergrenze für ein passendes Projekt (Komplettbad ab ca. € 15.000).
   // ok: true = +Punkte, false = −Punkte, null = neutral (siehe score)
   budgetStufenBad: [
@@ -59,7 +63,7 @@ window.KLINGLER_CONFIG = {
     imGebiet: 3, ausserhalb: -3,
     zeitrahmen: { "0-3": 3, "3-6": 2, "6-12": 1, "info": 0 },
     budgetOk: 2, budgetUnbekannt: 0, budgetZuNiedrig: -2,
-    fotosOderFlaeche: 1, mailUndTelefon: 1, umstiegOelGas: 1,
+    fotosOderFlaeche: 1, mailUndTelefon: 1, umstiegOelGas: 1, pvMitWaermepumpe: 1,
     projektGrundwert: 6, projektPlanungFortgeschritten: 2,
     klasseA: 7, klasseB: 4
   },
