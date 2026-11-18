@@ -64,6 +64,10 @@
       w.textContent = "Mehr zu Wärmepumpe & Förderung";
       w.setAttribute("href", "../../heizung/index.html#foerderung-titel");
     }
+    if (p.get("thema") === "pv") {
+      w.textContent = "Mehr zu Photovoltaik & Förderung";
+      w.setAttribute("href", "../../photovoltaik/index.html#foerderung-titel");
+    }
     if (p.get("thema") === "projekt") {
       document.getElementById("danke-text").innerHTML = 'Ihre Projektleitung meldet sich persönlich bei Ihnen – in der Regel innerhalb von <span data-frist>einem Werktag</span>.';
       var schritte = document.querySelectorAll(".danke__schritte li");

@@ -158,7 +158,8 @@ p { margin: 0 0 1em; }
 /* ---------- Einstiege (drei Kacheln) ---------- */
 .einstiege { margin-top: clamp(-72px, -6vw, -40px); position: relative; z-index: 2; }
 .einstiege__grid { display: grid; gap: 1.25rem; }
-@media (min-width: 760px) { .einstiege__grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 760px) { .einstiege__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .einstiege__grid { grid-template-columns: repeat(4, 1fr); } }
 .kachel { background: var(--weiss); border-radius: var(--radius); overflow: hidden; box-shadow: var(--schatten); display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform .25s, box-shadow .25s; }
 .kachel:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(31,40,58,.18); color: inherit; }
 .kachel__bild { aspect-ratio: 16 / 10; overflow: hidden; background: var(--stein); }

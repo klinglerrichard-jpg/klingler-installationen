@@ -18,6 +18,9 @@
     bad: '<path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3z"/><path d="M6 12V6a2 2 0 0 1 4 0"/><path d="M7 19l-1 2M17 19l1 2"/>',
     heizung: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9v6M12 9v6M16 9v6"/>',
     projekt: '<path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6M9 11h.01M15 11h.01"/>',
+    pv: '<path d="M3 18l3-10h12l3 10z"/><path d="M4.5 13h15M9 8l-1 10M15 8l1 10"/>',
+    speicher: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M10 2h4M9 15h6M9 11h6"/>',
+    beratung: '<path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
     stoerung: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5z"/>',
     komplett: '<path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/>',
     teil: '<path d="M12 3v18M3 12h18"/>',
@@ -58,6 +61,13 @@
     { wert: "kein-warmwasser", label: "Kein Warmwasser", kurz: "Kein Warmwasser", dringend: true },
     { wert: "wartung", label: "Wartung / Service", kurz: "Wartung" },
     { wert: "sonstiges", label: "Sonstiges", kurz: "Sonstiges" }
+  ];
+
+  var PV_VORHABEN = [
+    { wert: "neu", label: "Neue PV-Anlage", info: "Strom vom eigenen Dach", kurz: "Neue Anlage", icon: "pv" },
+    { wert: "kombi", label: "PV mit Wärmepumpe", info: "Heizung und Strom gemeinsam planen", kurz: "PV+WP", icon: "heizung" },
+    { wert: "erweitern", label: "Bestehende Anlage erweitern", info: "Speicher, Wallbox oder mehr Module nachrüsten", kurz: "Erweiterung", icon: "speicher" },
+    { wert: "beratung", label: "Erst einmal beraten lassen", info: "Lohnt sich PV bei mir?", kurz: "Beratung", icon: "beratung" }
   ];
 
   var PR_ART = [
@@ -141,6 +151,34 @@
       }
     },
 
+    pv: {
+      titel: "Ihre Photovoltaik-Anlage",
+      untertitel: "Vier kurze Fragen – danach meldet sich Ihr Berater persönlich.",
+      themaKurz: "PV",
+      gebiet: "pvGebietPLZ",
+      ausserhalbText: "<strong>Photovoltaik bieten wir derzeit nur in der Wildschönau an.</strong> Sie können trotzdem anfragen – wir melden uns mit einer ehrlichen Einschätzung.",
+      schritte: [
+        { typ: "auswahl", name: "vorhaben", frage: "Was planen Sie?", hilfe: "Wählen Sie, was am ehesten passt.", raster: 2, optionen: PV_VORHABEN },
+        { typ: "gruppen", frage: "Erzählen Sie uns kurz von Ihrem Gebäude.", hilfe: "Grobe Angaben genügen.", gruppen: [
+          { name: "gebaeude", legende: "Gebäude", optionen: [
+            { wert: "efh", label: "Einfamilienhaus", kurz: "EFH" }, { wert: "mfh", label: "Mehrfamilienhaus", kurz: "MFH" }, { wert: "gewerbe", label: "Gewerbe / Landwirtschaft", kurz: "Gewerbe" }
+          ] },
+          { name: "dach", legende: "Dach", optionen: [
+            { wert: "schraeg", label: "Schrägdach" }, { wert: "flach", label: "Flachdach" }, { wert: "sonstig", label: "Carport, Fassade o. Ä." }, { wert: "unsicher", label: "Weiß nicht" }
+          ] },
+          { name: "zusatz", legende: "Interesse an", mehrfach: true, optionen: [
+            { wert: "speicher", label: "Stromspeicher" }, { wert: "wallbox", label: "Wallbox" }, { wert: "waermepumpe", label: "Wärmepumpe" }, { wert: "warmwasser", label: "Warmwasser mit PV" }
+          ] }
+        ] },
+        { typ: "ort", frage: "Wo steht das Gebäude – und wann soll es losgehen?", hilfe: "So sehen wir, ob wir Sie schnell erreichen.", mitZeitrahmen: true },
+        KONTAKT
+      ],
+      extraPunkte: function (d, sc) {
+        return (d.vorhaben === "kombi" || /waermepumpe/.test(d.zusatz || "")) ? (sc.pvMitWaermepumpe || 0) : 0;
+      },
+      betreffDetail: function (d) { return [labelVon(ZEITRAHMEN, d.zeitrahmen) || "?", labelVon(PV_VORHABEN, d.vorhaben) || "?"]; }
+    },
+
     projekt: {
       titel: "Ihr Projekt",
       untertitel: "Drei kurze Schritte – Ihre Projektleitung meldet sich persönlich.",
@@ -183,6 +221,7 @@
   var THEMEN_AUSWAHL = [
     { thema: "bad", label: "Neues Bad", info: "Sanierung, barrierefrei, Wellness", icon: "bad" },
     { thema: "heizung", label: "Neue Heizung", info: "Heizungstausch, Wärmepumpe, Neubau", icon: "heizung" },
+    { thema: "pv", label: "Photovoltaik", info: "PV-Anlage, Speicher, Wallbox", icon: "pv" },
     { thema: "projekt", label: "Projektbau", info: "Hotel, Wohnbau, Gewerbe", icon: "projekt" },
     { thema: "kundendienst", label: "Störung oder Wartung", info: "Heizung aus, kein Warmwasser", icon: "stoerung" }
   ];
@@ -278,7 +317,7 @@
       '<div class="feld"><label for="f-plz">PLZ</label><input id="f-plz" type="text" name="plz" inputmode="numeric" maxlength="4" autocomplete="postal-code" required></div>' +
       '<div class="feld"><label for="f-ort">Ort</label><input id="f-ort" type="text" name="ort" autocomplete="address-level2" required></div>' +
       "</div>" +
-      '<div class="hinweis hinweis--warn" data-ausserhalb hidden><strong>Dieser Ort liegt leider außerhalb unseres Gebiets für Privatkunden.</strong> Wir sind im Umkreis von rund 40 km um die Wildschönau für Sie da. Sie können trotzdem anfragen – wir melden uns mit einer ehrlichen Einschätzung.</div>';
+      '<div class="hinweis hinweis--warn" data-ausserhalb hidden>' + (flow.ausserhalbText || '<strong>Dieser Ort liegt leider außerhalb unseres Gebiets für Privatkunden.</strong> Wir sind im Umkreis von rund 40 km um die Wildschönau für Sie da. Sie können trotzdem anfragen – wir melden uns mit einer ehrlichen Einschätzung.') + '</div>';
   }
 
   function datenschutzFeld() {
@@ -289,7 +328,7 @@
   var FELDNAMEN = {
     vorhaben: "Vorhaben", anliegen: "Anliegen", plz: "PLZ", ort: "Ort", zeitrahmen: "Zeitrahmen", budget: "Budget",
     flaeche: "Badgröße (m²)", gebaeude: "Gebäude", baujahr: "Baujahr", wohnflaeche: "Beheizte Fläche",
-    heizung_aktuell: "Heizung aktuell", wunsch: "Gewünschtes System", projektart: "Projektart", rolle: "Rolle",
+    heizung_aktuell: "Heizung aktuell", wunsch: "Gewünschtes System", dach: "Dach", zusatz: "Interesse an", projektart: "Projektart", rolle: "Rolle",
     groesse: "Größe", leistungen: "Leistungen", planungsstand: "Planungsstand", zeitraum: "Ausführungszeitraum",
     problem: "Problem", geraet: "Gerät / Marke", bestandskunde: "Bereits Kunde",
     vorname: "Vorname", nachname: "Nachname", name: "Name", firma: "Firma", funktion: "Funktion",
@@ -334,7 +373,7 @@
   function renderSchritt(s, i) {
     var inhalt = "";
     if (s.typ === "auswahl") inhalt = optionenHtml(s.name, s.optionen, s.raster, s.icon, s.frage);
-    if (s.typ === "gruppen") inhalt = s.gruppen.map(function (g) { return chipsHtml(g.name, g.optionen, g.legende); }).join("");
+    if (s.typ === "gruppen") inhalt = s.gruppen.map(function (g) { return chipsHtml(g.name, g.optionen, g.legende, g.mehrfach); }).join("");
     if (s.typ === "ort") inhalt = ortFelder() + (s.mitZeitrahmen ? chipsHtml("zeitrahmen", ZEITRAHMEN, "Wann soll es losgehen?") : "");
     if (s.typ === "budget") {
       var stufen = (cfg.budgetStufenBad || []).map(function (b) { return { wert: b.wert, label: b.label }; });
@@ -418,11 +457,12 @@
       }).join("") + "</fieldset>";
   }
 
-  function chipsHtml(name, optionen, legende) {
-    return '<fieldset class="optionen optionen--chips" data-gruppe="' + name + '"><legend>' + esc(legende) + "</legend>" +
+  // mehrfach = Checkboxen, freiwillig (keine Pflichtauswahl)
+  function chipsHtml(name, optionen, legende, mehrfach) {
+    return '<fieldset class="optionen optionen--chips" data-gruppe="' + name + '"><legend>' + esc(legende) + (mehrfach ? ' <small style="font-weight:400">(optional, mehrere möglich)</small>' : "") + "</legend>" +
       optionen.map(function (o, j) {
         var id = "c-" + name + "-" + j;
-        return '<div class="option"><input type="radio" id="' + id + '" name="' + name + '" value="' + esc(o.wert) + '"><label for="' + id + '"><strong>' + mitPh(o.label) + "</strong></label></div>";
+        return '<div class="option"><input type="' + (mehrfach ? "checkbox" : "radio") + '" id="' + id + '" name="' + name + '" value="' + esc(o.wert) + '"><label for="' + id + '"><strong>' + mitPh(o.label) + "</strong></label></div>";
       }).join("") + "</fieldset>";
   }
 
@@ -496,7 +536,7 @@
     }
     if (s.typ === "gruppen") {
       for (var g = 0; g < s.gruppen.length; g++) {
-        if (!gewaehlt(form, s.gruppen[g].name)) return fehler("Bitte wählen Sie bei „" + s.gruppen[g].legende + "“ eine Antwort.");
+        if (!s.gruppen[g].mehrfach && !gewaehlt(form, s.gruppen[g].name)) return fehler("Bitte wählen Sie bei „" + s.gruppen[g].legende + "“ eine Antwort.");
       }
     }
     if (s.typ === "eckdaten") {
@@ -524,7 +564,7 @@
     zeige(form, aktuell + 1);
   }
 
-  function imGebiet(plz) { return (cfg.einzugsgebietPLZ || []).indexOf(plz) !== -1; }
+  function imGebiet(plz) { return ((flow.gebiet && cfg[flow.gebiet]) || cfg.einzugsgebietPLZ || []).indexOf(plz) !== -1; }
 
   function fehler(text) {
     var el = root.querySelector("[data-fehler]");
